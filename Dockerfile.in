@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Pick your favorite base image.  Debian is very standard but large.  Alpine is
-# less expansive, but smaller.
+# Debian is very standard but has lots of tools.
+# Alpine is less expansive, but smaller.
 FROM debian as base
 
 # We can be sloppy about layers because this is a multi-stage build.
@@ -32,7 +32,7 @@ RUN apt-get -y -qq -o Dpkg::Use-Pty=0 -y install \
 RUN rm -rf /var/lib/apt/lists/*
 
 # Update this as needed.
-FROM registry.k8s.io/kubernetes/kubectl:v1.29.0 as kubectl
+FROM registry.k8s.io/kubernetes/kubectl:{ARG_VERSION} as kubectl
 
 FROM scratch
 
