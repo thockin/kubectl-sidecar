@@ -1,0 +1,128 @@
+# This is the identity the Pods will run as.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: demo-kubectl-sidecar
+  namespace: default
+---
+# This defines the namespace-scope permissions granted.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: demo-kubectl-sidecar
+  namespace: default
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - pods
+  verbs:
+  - get
+  - watch
+---
+# This joins the ServiceAccount to the Role above.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: demo-kubectl-sidecar
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: demo-kubectl-sidecar
+subjects:
+- kind: ServiceAccount
+  name: demo-kubectl-sidecar
+---
+# This defines the cluster-scope permissions granted.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: demo-kubectl-sidecar
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - nodes
+  verbs:
+  - get
+  - watch
+---
+# This joins the ServiceAccount to the ClusterRole above.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: demo-kubectl-sidecar
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: demo-kubectl-sidecar
+subjects:
+- kind: ServiceAccount
+  name: demo-kubectl-sidecar
+  namespace: default
+---
+# This is the actual workload.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-kubectl-sidecar
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: demo-kubectl-sidecar
+  template:
+    metadata:
+      labels:
+        app: demo-kubectl-sidecar
+    spec:
+      serviceAccountName: demo-kubectl-sidecar
+      securityContext:
+        # Set this to any valid GID, and two things happen:
+        #   1) The volume "content" is group-owned by this GID.
+        #   2) This GID is added to each container.
+        fsGroup: 9376
+      containers:
+      - name: server
+        image: nginx
+        volumeMounts:
+        - mountPath: /usr/share/nginx/html
+          name: content
+          readOnly: true
+      - name: sidecar
+        image: thockin/kubectl-sidecar:v1.29.2-1
+        env:
+          - name: MYPOD
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: MYNS
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: MYNODE
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+        args:
+          - bash
+          - -c
+          - |
+            while true; do
+              kubectl -n $MYNS get pod $MYPOD -o json | jq '.status' > /data/this-pod-status.json
+              kubectl get node $MYNODE -o json | jq '.status' > /data/this-node-status.json
+              sleep 30
+            done
+        volumeMounts:
+        - name: content
+          mountPath: /data
+        securityContext:
+          # This doesn't need to run as root.
+          runAsUser: 9376
+          runAsGroup: 9376
+      volumes:
+      - name: content
+        emptyDir: {}
+      terminationGracePeriodSeconds: 5
