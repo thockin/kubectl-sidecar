@@ -2,6 +2,7 @@
 REGISTRY ?= thockin
 NAME ?= kubectl-sidecar
 VERSION ?= v1.29.2
+RELEASE ?= 1
 
 # Set these to cross-compile.
 GOOS ?=
@@ -21,7 +22,7 @@ OS := $(if $(GOOS),$(GOOS),$(shell go env GOOS))
 ARCH := $(if $(GOARCH),$(GOARCH),$(shell go env GOARCH))
 
 IMAGE := $(REGISTRY)/$(NAME)
-TAG := $(VERSION)
+TAG := $(VERSION)-$(RELEASE)
 OS_ARCH_TAG := $(TAG)__$(OS)_$(ARCH)
 
 DBG_MAKEFILE ?=
