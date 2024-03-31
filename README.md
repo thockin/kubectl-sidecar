@@ -41,4 +41,10 @@ positioned to make those tradeoffs.
 ## Example
 
 Here is a working [example](example.yaml) which you can use to understand this
-approach.
+approach. After applying the manifest you can check it using:
+
+```
+kubectl port-forward deployment/demo-kubectl-sidecar 8080:80
+curl http://localhost:8080/this-pod-status.json
+curl http://localhost:8080/this-node-status.json
+```
