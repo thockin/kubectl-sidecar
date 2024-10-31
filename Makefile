@@ -1,7 +1,7 @@
 # Where to push the docker image.
 REGISTRY ?= thockin
 NAME ?= kubectl-sidecar
-VERSION ?= v1.30.0
+VERSION ?= v1.31.2
 RELEASE ?= 1
 
 # Set these to cross-compile.
