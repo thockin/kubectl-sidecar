@@ -93,7 +93,7 @@ spec:
           readOnly: true
       initContainers:
       - name: sidecar
-        image: thockin/kubectl-sidecar:v1.31.2-1
+        image: thockin/kubectl-sidecar:v1.31.2-1__linux_amd64
         restartPolicy: Always
         env:
           - name: MYPOD
