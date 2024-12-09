@@ -1,7 +1,7 @@
 # Where to push the docker image.
 REGISTRY ?= thockin
 NAME ?= kubectl-sidecar
-VERSION ?= v1.31.2
+VERSION ?= v1.31.3
 RELEASE ?= 1
 
 # Set these to cross-compile.
@@ -15,7 +15,7 @@ DBG ?=
 ### These variables should not need tweaking.
 ###
 
-ALL_PLATFORMS := linux/amd64 linux/arm64 linux/ppc64le linux/s390x
+ALL_PLATFORMS := linux/amd64 linux/arm64
 
 # Used internally.  Users should pass GOOS and/or GOARCH.
 OS := $(if $(GOOS),$(GOOS),$(shell go env GOOS))
